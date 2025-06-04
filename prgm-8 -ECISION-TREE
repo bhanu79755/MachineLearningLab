@@ -1,0 +1,36 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier,plot_tree
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report,accuracy_score
+import matplotlib.pyplot as plt
+df=pd.read_csv('Wisconsin_Breast_Cancer.csv')
+df.head()
+df.tail()
+df=df.drop(columns=['id','unnamed:32'],errors='ignore')
+df.head()
+df['diagnosis'].value_counts()
+le=LabelEncoder()
+df['diagnosis']=le.fit_transform(df['diagnosis'])
+df['diagnosis'].value_counts()
+x=df.drop(['diagnosis'],axis=1)
+y=df['diagnosis']
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0. 2,random_state=42)
+
+clf=DecisionTreeClassifier(random_state=42)
+clf.fit(x_train,y_train)
+DecisionTreeClassifier(random_state=42)
+y_pred=clf.predict(x_test)
+print("\n classification report:\n",classification_report(y_test,y_pred))
+print("Accuracy Score:",accuracy_score(y_test,y_pred))
+plt.figure(figsize=(20,10))
+plot_tree(clf,feature_names=x.columns,class_names=le.classes_,filled=True,rounded=True,fontsize=10)
+plt.title("DecisionTreeforBreastCancer")
+plt.tight_layout()
+plt.show()
+new_sample_values=x.iloc[0].values.reshape(1,-1)
+new_sample_df=pd.DataFrame(new_sample_values,columns=x.columns)
+new_sample_df
+predicted_class=clf.predict(new_sample_df)
+print(f"\npredictedclassforthenewsample:{le.inverse_transform(predicted_class)[0]}")
