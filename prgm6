@@ -1,0 +1,36 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+data=pd.read_csv("auto-mpg.csv")
+data.head()
+data['Horsepower']=data['horsepower'].replace('?',np.nan)
+data['Horsepower']=pd.to_numeric(data['Horsepower'])
+data=data.dropna(subset=['Horsepower'])
+data['Horsepower']=data['Horsepower'].astype(int)
+x=data['Horsepower'].values
+y=data['mpg'].values
+x=(x-np.mean(x))/np.std(x)
+def weights(xq,x,tau):
+    return np.exp((-(x-xq)**2)/(2*tau**2))
+def locally_weighted_regression(xq,x,y,tau):
+    m=len(x)
+    w=weights(xq,x,tau)
+    W=np.diag(w)
+    x_bias=np.c_[np.ones(m),x]
+    beta=np.linalg.pinv(x_bias.T @ W @ x_bias) @ (x_bias.T @ W @ y)
+    return np.dot([1,xq],beta)
+def predict(x, y, tau, x_range):
+    return np.array([locally_weighted_regression(xq,x,y,tau) for xq in x_range])
+x_query = np.linspace(min(x), max(x), 100)
+plt.figure(figsize=(10, 6))
+for tau in [0.1, 0.5, 1.0]:
+    y_pred = predict(x, y, tau, x_query)
+    plt.plot(x_query, y_pred, label=f"tau = {tau}")
+plt.scatter(x, y, alpha=0.5, label='data')
+plt.title("Locally Weighted Regression")
+plt.xlabel("Normalized Horsepower")
+plt.ylabel("MPG")
+plt.legend()
+plt.grid(True)
+plt.show()
+
