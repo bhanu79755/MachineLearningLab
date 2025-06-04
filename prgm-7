@@ -1,0 +1,48 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+
+data = pd.read_csv("auto-mpg.csv")
+data.head()
+
+# Replace '?' with NaN
+data['horsepower'] = data['horsepower'].replace('?', np.nan)
+# Convert to numeric (this will convert valid strings to floats, NaNs stay)
+data['horsepower'] = pd.to_numeric(data['horsepower'])
+data = data.dropna(subset=['horsepower'])
+data['horsepower'] = data['horsepower'].astype(int)
+missing_value = data.isnull().sum()
+missing_value
+X = data.drop(columns=['mpg','car name'])
+y = data['mpg']
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+#Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+mse = mean_squared_error(y_test, y_pred)
+print(f"\nMean Squared Error: {mse:.2f}")
+
+r2 = r2_score(y_test, y_pred)
+print(f"R² Score: {r2:.2f}")
+
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.7, color='blue', label='Predictions')
+plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2, label='Perfect Prediction Line')
+plt.xlabel("Actual MPG")
+plt.ylabel("Predicted MPG")
+plt.title("Linear Regression: Actual vs Predicted MPG")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+poly = PolynomialFeatures(degree=2, include_bias=False)
+X_poly = poly.fit_transform(X_scaled)
